@@ -2,13 +2,16 @@
   "name": "pneuoma-app",
   "version": "0.1.0",
   "private": true,
+  "prisma": {
+    "schema": "prisma/schema.prisma"
+  },
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
-    "build:full": "prisma generate && prisma db push && next build",
+    "build": "prisma generate && prisma db push && next build",
+    "build:next-only": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
-    "db:push": "prisma db push",
+    "db:push": "node scripts/db-push.mjs",
     "migrate:to-supabase": "node scripts/migrate-to-supabase.mjs",
     "db:studio": "prisma studio",
     "postinstall": "prisma generate"

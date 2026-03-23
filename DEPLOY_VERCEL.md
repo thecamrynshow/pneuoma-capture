@@ -31,13 +31,19 @@
 
 ## 4. Database Schema
 
-Before first deploy, create tables in Supabase:
+The default **`npm run build`** runs **`prisma db push`** before `next build`, so Vercel creates/updates tables on each deploy **as long as `DATABASE_URL` is set** for the deployment (Production/Preview).
+
+**If the build fails on `db push`:** confirm `DATABASE_URL` exists in Vercel and is not quoted; use the pooler URI for serverless.
+
+**Push schema from your machine** (works even if your shell was in the wrong folder before — this script uses the repo root):
 
 ```bash
-DATABASE_URL="your-supabase-pooler-url" npx prisma db push
+npm run db:push
 ```
 
-Or in Vercel: set **Build Command** to `prisma generate && prisma db push && next build`
+(Uses `DATABASE_URL` from `.env` or pass it inline: `DATABASE_URL="postgresql://..." npm run db:push`)
+
+**Skip `db push` on Vercel** only if you manage the schema elsewhere: set **Build Command** to `npm run build:next-only`.
 
 ## 5. Custom Domain (capture.pneuoma.com)
 
