@@ -22,7 +22,8 @@
 
 | Variable | Value |
 |----------|-------|
-| `DATABASE_URL` | Supabase connection string (pooler) |
+| `DATABASE_URL` | Supabase **pooler** URI (port **6543**), add `?pgbouncer=true` for transaction mode |
+| `DIRECT_URL` | Supabase **direct** URI (port **5432**, host `db.<project>.supabase.co`) — required for `prisma db push` on Vercel builds |
 | `NEXTAUTH_SECRET` | `openssl rand -base64 32` |
 | `NEXTAUTH_URL` | `https://your-project.vercel.app` |
 | `REPLICATE_API_TOKEN` | Your Replicate token |
@@ -31,9 +32,9 @@
 
 ## 4. Database Schema
 
-The default **`npm run build`** runs **`prisma db push`** before `next build`, so Vercel creates/updates tables on each deploy **as long as `DATABASE_URL` is set** for the deployment (Production/Preview).
+The default **`npm run build`** runs **`prisma db push`** before `next build`. You **must** set both **`DATABASE_URL`** (pooler) and **`DIRECT_URL`** (direct `5432`) in Vercel — `db push` cannot use the transaction pooler alone.
 
-**If the build fails on `db push`:** confirm `DATABASE_URL` exists in Vercel and is not quoted; use the pooler URI for serverless.
+**If the build still fails:** open the Vercel build log and search for `prisma`; fix password URL-encoding (`@` → `%40`) and redeploy.
 
 **Push schema from your machine** (works even if your shell was in the wrong folder before — this script uses the repo root):
 

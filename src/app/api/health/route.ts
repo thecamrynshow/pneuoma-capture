@@ -7,6 +7,7 @@ import { prisma } from '@/lib/db'
  */
 export async function GET() {
   const hasDbUrl = !!process.env.DATABASE_URL
+  const hasDirectUrl = !!process.env.DIRECT_URL
   const hasAuthSecret = !!process.env.NEXTAUTH_SECRET
   const hasAuthUrl = !!process.env.NEXTAUTH_URL
 
@@ -22,9 +23,10 @@ export async function GET() {
   }
 
   return NextResponse.json({
-    ok: hasDbUrl && hasAuthSecret && dbOk,
+    ok: hasDbUrl && hasDirectUrl && hasAuthSecret && dbOk,
     config: {
       hasDatabaseUrl: hasDbUrl,
+      hasDirectUrl,
       hasNextAuthSecret: hasAuthSecret,
       hasNextAuthUrl: hasAuthUrl,
       nextAuthUrl: hasAuthUrl ? process.env.NEXTAUTH_URL : undefined,
