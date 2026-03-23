@@ -13,13 +13,18 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email.toLowerCase() },
-        })
-        if (!user) return null
-        const ok = await bcrypt.compare(credentials.password, user.passwordHash)
-        if (!ok) return null
-        return { id: user.id, email: user.email, name: user.name }
+        try {
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email.toLowerCase().trim() },
+          })
+          if (!user) return null
+          const ok = await bcrypt.compare(credentials.password, user.passwordHash)
+          if (!ok) return null
+          return { id: user.id, email: user.email, name: user.name }
+        } catch (e) {
+          console.error('[auth] authorize failed:', e)
+          return null
+        }
       },
     }),
   ],
@@ -42,5 +47,6 @@ export const authOptions: NextAuthOptions = {
     signIn: '/login',
   },
   session: { strategy: 'jwt', maxAge: 30 * 24 * 60 * 60 },
-  secret: process.env.NEXTAUTH_SECRET,
+  // Strip accidental quotes from env (common when pasting into Vercel)
+  secret: process.env.NEXTAUTH_SECRET?.replace(/^["']|["']$/g, '') || undefined,
 }

@@ -35,6 +35,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Signup failed:', error)
-    return NextResponse.json({ error: 'Signup failed' }, { status: 500 })
+    const isDbError =
+      error instanceof Error &&
+      (error.message?.includes('prisma') ||
+        error.message?.includes('connect') ||
+        error.message?.includes('P1001') ||
+        error.message?.includes('P1017'))
+    return NextResponse.json(
+      {
+        error: isDbError
+          ? 'Database unavailable. Check Vercel env vars (DATABASE_URL) and that tables exist.'
+          : 'Signup failed',
+      },
+      { status: 500 },
+    )
   }
 }

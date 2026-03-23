@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { signIn } from 'next-auth/react'
+import { signIn, getSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
@@ -24,14 +24,30 @@ export default function LoginPage() {
         password,
         redirect: false,
       })
-      if (res?.error) {
-        setError('Invalid email or password')
+      if (!res?.ok || res?.error) {
+        setError(
+          res?.error === 'Configuration' || res?.error === 'Callback'
+            ? 'Server configuration error. Check Vercel env vars (DATABASE_URL, NEXTAUTH_SECRET, NEXTAUTH_URL) and redeploy.'
+            : 'Invalid email or password',
+        )
         setLoading(false)
         return
       }
-      router.push(callbackUrl)
+      // Wait until session is readable before navigating — avoids AuthGuard
+      // redirecting back to /login before React picks up the new session (Capacitor / fast nav).
+      const session = await getSession()
+      if (!session) {
+        setError('Signed in but session did not load. Try again or check NEXTAUTH_URL matches this site (https://capture.pneuoma.com).')
+        setLoading(false)
+        return
+      }
+      const safePath =
+        callbackUrl.startsWith('/') && !callbackUrl.startsWith('//') ? callbackUrl : '/'
+      router.push(safePath)
       router.refresh()
-    } catch {
+      setLoading(false)
+    } catch (err) {
+      console.error(err)
       setError('Something went wrong')
       setLoading(false)
     }

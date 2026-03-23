@@ -1,0 +1,11 @@
+# Exclude from Vercel upload (Next.js doesn't need these)
+node_modules
+.next
+out
+.git
+ios
+pneuoma-ai
+pneuoma-core
+*.db
+__pycache__
+.vercel

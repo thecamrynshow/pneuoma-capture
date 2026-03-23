@@ -16,10 +16,11 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     if (status === 'loading') return
     const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p))
     if (!session && !isPublic) {
+      setReady(false)
       router.replace('/login')
-    } else {
-      setReady(true)
+      return
     }
+    setReady(true)
   }, [session, status, pathname, router])
 
   if (status === 'loading' || !ready) {
