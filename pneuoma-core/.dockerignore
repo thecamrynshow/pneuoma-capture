@@ -1,0 +1,11 @@
+__pycache__
+*.pyc
+.env
+.git
+.gitignore
+data/chromadb/*
+data/profiles/*
+data/chats.db
+backups/
+README.md
+.dockerignore

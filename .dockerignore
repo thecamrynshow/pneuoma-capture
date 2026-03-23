@@ -1,0 +1,12 @@
+node_modules
+.next
+.git
+ios
+www
+pneuoma-ai
+dev.db
+dev.db-journal
+*.rtf
+.env
+.env.local
+APP_STORE_REVIEW_NOTES.md

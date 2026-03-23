@@ -1,0 +1,192 @@
+@import "tailwindcss";
+
+:root {
+  --bg-deep: #07080d;
+  --bg-mid: #0d1117;
+  --bg-surface: #151b23;
+  --bg-elevated: #1c2430;
+  --bg-card: #1a1f2e;
+  --accent: #f59e0b;
+  --accent-dim: rgba(245, 158, 11, 0.15);
+  --accent-green: #10b981;
+  --accent-blue: #3b82f6;
+  --accent-purple: #8b5cf6;
+  --accent-red: #ef4444;
+  --accent-orange: #f97316;
+  --text-primary: #e8eaed;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-light: rgba(255, 255, 255, 0.12);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --sat-fallback: 0px;
+}
+
+@theme inline {
+  --color-background: var(--bg-deep);
+  --color-foreground: var(--text-primary);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+  background: var(--bg-deep);
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+}
+
+/* Frosted glass top nav */
+.nav-top {
+  background: rgba(7, 8, 13, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding-top: var(--sat-fallback);
+  padding-top: constant(safe-area-inset-top);
+  padding-top: env(safe-area-inset-top, var(--sat-fallback));
+}
+
+.app-header {
+  height: calc(56px + var(--sat-fallback));
+  height: calc(56px + constant(safe-area-inset-top));
+  height: calc(56px + env(safe-area-inset-top, var(--sat-fallback)));
+}
+
+.main-content {
+  padding-top: calc(56px + var(--sat-fallback));
+  padding-top: calc(56px + constant(safe-area-inset-top));
+  padding-top: calc(56px + env(safe-area-inset-top, var(--sat-fallback)));
+}
+
+/* Frosted glass bottom nav */
+.nav-bottom {
+  background: rgba(7, 8, 13, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Card surfaces */
+.card-surface {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+
+.card-surface:hover {
+  border-color: var(--border-light);
+}
+
+/* Gradient CTA */
+.cta-gradient {
+  background: linear-gradient(135deg, var(--bg-elevated), var(--bg-surface));
+  border: 1px solid var(--border-light);
+}
+
+.cta-gradient:hover {
+  border-color: var(--accent);
+}
+
+/* Elevated surface */
+.surface-elevated {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+}
+
+/* Accent badge glow */
+.accent-glow {
+  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.3);
+}
+
+/* Record button pulse */
+@keyframes pulse-record {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.5);
+  }
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 0 0 20px rgba(245, 158, 11, 0);
+  }
+}
+
+@keyframes pulse-rec {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 20px rgba(239, 68, 68, 0);
+  }
+}
+
+.animate-pulse-record {
+  animation: pulse-record 1.5s ease-in-out infinite;
+}
+
+.animate-pulse-rec {
+  animation: pulse-rec 1.5s ease-in-out infinite;
+}
+
+/* Safe area insets */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@supports (-webkit-touch-callout: none) {
+  .safe-area-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 8px);
+  }
+}
+
+/* Form inputs — original aesthetic */
+.input-field {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  transition: 200ms ease;
+}
+
+.input-field:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+  outline: none;
+}
+
+/* Severity badges */
+.badge-low { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+.badge-medium { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+.badge-high { background: rgba(249, 115, 22, 0.15); color: #fb923c; }
+.badge-critical { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+
+/* Status badges */
+.badge-open { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+.badge-in-progress { background: rgba(139, 92, 246, 0.15); color: #a78bfa; }
+.badge-resolved { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+.badge-closed { background: rgba(255, 255, 255, 0.06); color: var(--text-muted); }
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 4px; }

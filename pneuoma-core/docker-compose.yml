@@ -1,0 +1,22 @@
+# PNEUOMA Core points at PNEUOMA AI. Run PNEUOMA AI separately (pneuoma-ai has api + vLLM).
+services:
+  core:
+    build: .
+    ports:
+      - "8100:8100"
+    environment:
+      - PNEUOMA_API_KEYS=${PNEUOMA_API_KEYS:-}
+      - PNEUOMA_AI_URL=${PNEUOMA_AI_URL:-http://host.docker.internal:8000}
+      - PNEUOMA_AI_KEY=${PNEUOMA_AI_KEY:-}
+      - LLM_MODEL=${LLM_MODEL:-Qwen/Qwen2.5-7B-Instruct}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-all-MiniLM-L6-v2}
+      - CHROMADB_PATH=/app/data/chromadb
+      - PROFILES_PATH=/app/data/profiles
+      - MEMORY_TOP_K=${MEMORY_TOP_K:-10}
+    volumes:
+      - consciousness-data:/app/data
+      - ./app:/app/app
+
+volumes:
+  consciousness-data:
+    driver: local

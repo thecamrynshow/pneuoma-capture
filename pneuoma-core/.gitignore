@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.env
+data/chromadb/*
+!data/chromadb/.gitkeep
+data/profiles/*
+!data/profiles/.gitkeep
+data/chats.db
+backups/
+*.egg-info/
+dist/
+build/
+.venv/

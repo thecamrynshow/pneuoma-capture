@@ -1,0 +1,43 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      - PNEUOMA_API_KEYS=${PNEUOMA_API_KEYS:-dev-key}
+      - WHISPER_MODEL=${WHISPER_MODEL:-tiny}
+      - WHISPER_DEVICE=cpu
+      - WHISPER_COMPUTE_TYPE=int8
+      - VLLM_BASE_URL=http://vllm:8001/v1
+      - LLM_MODEL=meta-llama/Llama-3.1-8B-Instruct
+    volumes:
+      - .:/app
+    depends_on:
+      vllm:
+        condition: service_healthy
+
+  vllm:
+    image: vllm/vllm-openai:latest
+    ports:
+      - "8001:8001"
+    command: >
+      --model meta-llama/Llama-3.1-8B-Instruct
+      --port 8001
+      --max-model-len 4096
+      --gpu-memory-utilization 0.5
+    environment:
+      - HUGGING_FACE_HUB_TOKEN=${HUGGING_FACE_HUB_TOKEN}
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 120s
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

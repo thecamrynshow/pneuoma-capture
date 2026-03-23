@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String     @id @default(uuid())
+  email        String     @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime   @default(now())
+  incidents    Incident[]
+}
+
+model Incident {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  date         DateTime
+  time         String
+  location     String
+  incidentType String
+  severity     String @default("Medium")
+
+  studentsInvolved String @default("[]")
+  staffInvolved    String @default("[]")
+  witnesses        String @default("[]")
+
+  description           String
+  immediateAction      String @default("")
+  followUpNeeded       String @default("")
+  deEscalationStrategies String @default("")
+
+  teacherNotified    Boolean @default(false)
+  parentNotified     Boolean @default(false)
+  counselorNotified  Boolean @default(false)
+  principalNotified  Boolean @default(false)
+  deanNotified       Boolean @default(false)
+  supportStaffNotified Boolean @default(false)
+  hrNotified         Boolean @default(false)
+  managerNotified    Boolean @default(false)
+  personalNotified   Boolean @default(false)
+
+  studentLabels String @default("{}")
+  witnessLabels String @default("{}")
+  mode         String @default("education")
+
+  reportedBy String
+  status     String @default("open")
+
+  rawTranscript String?
+  notes         String @default("")
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
