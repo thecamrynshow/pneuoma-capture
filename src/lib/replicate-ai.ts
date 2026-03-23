@@ -4,7 +4,49 @@
  */
 import Replicate from 'replicate'
 
-const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN })
+function replicateAuth(): string {
+  const raw = process.env.REPLICATE_API_TOKEN
+  const token = raw?.replace(/^["']|["']$/g, '').trim() ?? ''
+  if (!token) throw new Error('REPLICATE_API_TOKEN is not set')
+  return token
+}
+
+function getReplicate(): Replicate {
+  return new Replicate({ auth: replicateAuth() })
+}
+
+/** Replicate may return 429 when calls are too close (e.g. Whisper then Llama). Retry with backoff. */
+async function runWithRetry<T>(label: string, fn: () => Promise<T>): Promise<T> {
+  const maxAttempts = 6
+  let lastErr: unknown
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn()
+    } catch (e) {
+      lastErr = e
+      const msg = e instanceof Error ? e.message : String(e)
+      const is429 =
+        msg.includes('429') ||
+        msg.includes('Too Many Requests') ||
+        msg.toLowerCase().includes('throttl')
+      if (!is429 || attempt === maxAttempts) throw e
+
+      let delayMs = 2000 * attempt
+      try {
+        const detail = msg.match(/"retry_after"\s*:\s*(\d+)/)?.[1]
+        if (detail) delayMs = Math.max(delayMs, parseInt(detail, 10) * 1000 + 800)
+        const resets = msg.match(/resets in ~(\d+)s/i)?.[1]
+        if (resets) delayMs = Math.max(delayMs, parseInt(resets, 10) * 1000 + 800)
+      } catch {
+        /* use default delay */
+      }
+      delayMs = Math.min(delayMs, 20_000)
+      console.warn(`[replicate] ${label} 429, retry ${attempt}/${maxAttempts} in ${delayMs}ms`)
+      await new Promise((r) => setTimeout(r, delayMs))
+    }
+  }
+  throw lastErr instanceof Error ? lastErr : new Error(String(lastErr))
+}
 
 const WHISPER_MODEL = 'openai/whisper:8099696689d249cf8b122d833c36ac3f75505c666a395ca40ef26f68e7d3d16e'
 const LLAMA_MODEL = 'meta/meta-llama-3-8b-instruct'
@@ -21,9 +63,11 @@ export async function transcribeAudioReplicate(
   const ext = mimeType.includes('mp4') ? 'mp4' : mimeType.includes('ogg') ? 'ogg' : 'webm'
   const dataUri = `data:audio/${ext};base64,${base64}`
 
-  const output = await replicate.run(WHISPER_MODEL, {
-    input: { audio: dataUri },
-  })
+  const output = await runWithRetry('whisper', () =>
+    getReplicate().run(WHISPER_MODEL, {
+      input: { audio: dataUri },
+    }),
+  )
 
   if (typeof output === 'string') return output
   const o = output as Record<string, unknown>
@@ -67,13 +111,15 @@ const TEMPLATES_SYSTEM = `You are a school administrator assistant. Generate pro
 export async function parseTranscriptReplicate(transcript: string) {
   const system = PARSE_SYSTEM.replace('{today}', getToday())
   const prompt = `[System instructions]\n${system}\n\n[User transcript to parse]\n${transcript}`
-  const output = await replicate.run(LLAMA_MODEL, {
-    input: {
-      prompt,
-      max_tokens: 1024,
-      temperature: 0.1,
-    },
-  })
+  const output = await runWithRetry('parse', () =>
+    getReplicate().run(LLAMA_MODEL, {
+      input: {
+        prompt,
+        max_tokens: 1024,
+        temperature: 0.1,
+      },
+    }),
+  )
 
   const text = Array.isArray(output) ? output.join('') : typeof output === 'string' ? output : String(output)
   const jsonMatch = text.match(/\{[\s\S]*\}/)
@@ -119,13 +165,15 @@ Follow-up: ${incident.followUpNeeded}
 Reported by: ${incident.reportedBy}`
 
   const prompt = `[System instructions]\n${TEMPLATES_SYSTEM}\n\n[Incident details]\n${user}`
-  const output = await replicate.run(LLAMA_MODEL, {
-    input: {
-      prompt,
-      max_tokens: 2048,
-      temperature: 0.2,
-    },
-  })
+  const output = await runWithRetry('templates', () =>
+    getReplicate().run(LLAMA_MODEL, {
+      input: {
+        prompt,
+        max_tokens: 2048,
+        temperature: 0.2,
+      },
+    }),
+  )
 
   const text = Array.isArray(output) ? output.join('') : typeof output === 'string' ? output : String(output)
   const jsonMatch = text.match(/\{[\s\S]*\}/)
@@ -165,13 +213,15 @@ Preserve all fields from the original unless the user explicitly asks to change 
   }
 
   const fullPrompt = `[System instructions]\n${system}\n\n[Request]\n${prompt}`
-  const output = await replicate.run(LLAMA_MODEL, {
-    input: {
-      prompt: fullPrompt,
-      max_tokens: 2048,
-      temperature: 0.2,
-    },
-  })
+  const output = await runWithRetry('refine', () =>
+    getReplicate().run(LLAMA_MODEL, {
+      input: {
+        prompt: fullPrompt,
+        max_tokens: 2048,
+        temperature: 0.2,
+      },
+    }),
+  )
 
   const text = Array.isArray(output) ? output.join('') : typeof output === 'string' ? output : String(output)
   const jsonMatch = text.match(/\{[\s\S]*\}/)

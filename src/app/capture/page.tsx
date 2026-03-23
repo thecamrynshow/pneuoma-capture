@@ -43,6 +43,9 @@ export default function CapturePage() {
       const { transcript: text } = await transcribeRes.json()
       setTranscript(text)
 
+      // Space out Replicate calls (Whisper then Llama) — avoids 429 "burst" limits
+      await new Promise((r) => setTimeout(r, 2500))
+
       setState('parsing')
       const parseRes = await fetch(`${getApiBase()}/api/parse`, {
         method: 'POST',

@@ -9,7 +9,7 @@ import {
   refineIncidentReplicate,
 } from './replicate-ai'
 
-const USE_REPLICATE = !!process.env.REPLICATE_API_TOKEN
+const USE_REPLICATE = !!process.env.REPLICATE_API_TOKEN?.replace(/^["']|["']$/g, '').trim()
 
 function getPneuomaConfig() {
   const url = process.env.PNEUOMA_AI_URL
